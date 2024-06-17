@@ -1,11 +1,23 @@
 <script setup lang="ts">
 import {ref} from 'vue'
+
+// 定义接口：
+interface ITaskItem{
+  id:number;
+  text:string;
+  isDone:boolean;
+  isEdit:boolean
+}
+
 // 定义响应式对象：
 let todoText = ref<string>('');
 
+let itemText = ref();
+
 // 将taskList中的内容传送到浏览器的存储空间以保存
 // 描述该对象存放的是什么类型的：
-let taskList = ref<{id:number, text:String, isDone:boolean}[]>([]);
+// isEdit：是否被修改
+let taskList = ref<ITaskItem[]>([]);
   // {
   //   id: 1,
   //   text: '任务1',
@@ -38,14 +50,28 @@ function onAddTask(){
     id: taskList.value.length + 1,
     // 将添加的todoText文本作为任务名称
     text: todoText.value,
-    isDone: false
+    isDone: false,
+    isEdit: false
   });
   todoText.value = '';
+}
 
+function onSave(){
   // 数据持久化:
   // 将taskList中的内容传送到浏览器(换另一个浏览器就会消失)中的本地存储空间里（以字典的形式存储）：
   window.localStorage.setItem('taskList', JSON.stringify(taskList.value))   // key-value，value是字符串形式
   // 但我们存进去的不是字符串是数组，所以要对value进行串行化,将其转化为字符串
+}
+
+function onEdit(item: ITaskItem){
+  item.isEdit = true;
+  itemText.value = item.text;
+}
+
+function onEditOK(item: ITaskItem){
+  item.isEdit = false;
+  item.text = itemText.value;
+  onSave();
 }
 </script>
 
@@ -69,14 +95,28 @@ function onAddTask(){
 <!--      v-for:循环任务，根据taskList中的对象个数进行循环-->
       <div v-for="item of taskList" class="task-item">
 
+<!--        展示信息：-->
+<!--        如果没有点击修改就显示这个模板-->
+        <template v-if="!item.isEdit">
         <el-checkbox v-model="item.isDone" size="large">
           {{ item.text }}
         </el-checkbox>
 
         <div>
-          <el-button type="primary">修改</el-button>
+          <el-button type="primary" @click="onEdit(item)">修改</el-button>
           <el-button type="danger">删除</el-button>
         </div>
+        </template>
+
+<!--        编辑信息：-->
+<!--        否则（点击修改）显示这个模板-->
+        <template v-else>
+          <el-checkbox v-model="item.isDone" size="large">
+            <el-input v-model="itemText"></el-input>
+            <el-button @click="onEditOK(item)">确定</el-button>
+            <el-button @click="item.isEdit=false">取消</el-button>
+          </el-checkbox>
+        </template>
 
       </div>
 
