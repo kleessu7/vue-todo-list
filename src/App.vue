@@ -1,25 +1,37 @@
 <script setup lang="ts">
 import {ref} from 'vue'
-
+// 定义响应式对象：
 let todoText = ref<string>('');
 
-let taskList = ref([{
-    id: 1,
-    text: '任务1',
-    // true：打勾；false：不打勾
-    isDone: false
-  },
-  {
-    id: 2,
-    text: '任务2',
-    isDone: false
-  },
-  {
-    id: 3,
-    text: '任务3',
-    isDone: false
-  }
-  ]);
+// 将taskList中的内容传送到浏览器的存储空间以保存
+// 描述该对象存放的是什么类型的：
+let taskList = ref<{id:number, text:String, isDone:boolean}[]>([]);
+  // {
+  //   id: 1,
+  //   text: '任务1',
+  //   // true：打勾；false：不打勾
+  //   isDone: false
+  // },
+  // {
+  //   id: 2,
+  //   text: '任务2',
+  //   isDone: true
+  // },
+  // {
+  //   id: 3,
+  //   text: '任务3',
+  //   isDone: false
+  // }
+// ]);
+
+// 数据还原:
+// 反串行化-将字符串解析为对象(在这里是数组)的形式:
+taskList.value = JSON.parse(
+    // 用key(taskList)去本地浏览器的储存空间拿出字符串:
+    // 如果key(taskList)没有收到字符串,则用"[]"(字符串中只有空方括号,表示空数组)代替:
+    // 所以必须要加上: ?? "[]"
+    window.localStorage.getItem('taskList') ?? "[]"
+);
 
 function onAddTask(){
   taskList.value.push({
@@ -29,6 +41,11 @@ function onAddTask(){
     isDone: false
   });
   todoText.value = '';
+
+  // 数据持久化:
+  // 将taskList中的内容传送到浏览器(换另一个浏览器就会消失)中的本地存储空间里（以字典的形式存储）：
+  window.localStorage.setItem('taskList', JSON.stringify(taskList.value))   // key-value，value是字符串形式
+  // 但我们存进去的不是字符串是数组，所以要对value进行串行化,将其转化为字符串
 }
 </script>
 
@@ -66,7 +83,7 @@ function onAddTask(){
     </div>
 
   </div>
-</template>
+</template>【
 
 <style scoped>
 .container{
